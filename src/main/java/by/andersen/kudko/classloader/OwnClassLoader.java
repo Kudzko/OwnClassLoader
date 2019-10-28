@@ -33,22 +33,21 @@ public class OwnClassLoader extends ClassLoader {
 
     private void cacheClasses() {
         try {
-            log.error("!!!!!!!!!!!!!!!!!!");
+
             JarFile jarFile = new JarFile(jarFileName);
-            log.error("?????????????????????????");
             Enumeration entries = jarFile.entries();
             while (entries.hasMoreElements()) {
                 JarEntry jarEntry = (JarEntry) entries.nextElement();
                 // It's better to validate classes during the loading
                 if (validate(jarEntry, pacageName)) {
-                    log.error("after validation");
+
                     byte[] classData = loadClassData(jarFile, jarEntry);
                     if (classData != null) {
                         Class<?> currentClass = defineClass(stripClassName(normalize(jarEntry.getName())),
                                 classData, 0, classData.length);
-                        log.trace(jarEntry.getName());
-                        log.trace(normalize(jarEntry.getName()));
+
                         cache.put(currentClass.getName(), currentClass);
+                        log.trace(cache);
 
                         log.info("== class " + currentClass.getName() + " loaded in cache");
                     }
@@ -65,15 +64,16 @@ public class OwnClassLoader extends ClassLoader {
     }
 
     private boolean validate(JarEntry jarEntry, String pacageName) {
-        log.error("Validate method");
-        log.error(jarEntry);
-
+        log.trace("Validate method called");
+        log.trace("jarEntry name  " + jarEntry.getName());
         if ((jarEntry != null)
                 && (pacageName != null)
                 && match(normalize(jarEntry.getName()), pacageName)
                 && (pacageName.length() > 0)) {
+            log.trace("Validate method result: " + true);
             return true;
         } else {
+            log.trace("Validate method result: " + false);
             return false;
         }
     }
@@ -86,7 +86,9 @@ public class OwnClassLoader extends ClassLoader {
      * @return
      */
     private String normalize(String className) {
-        return className.replace("/", ".");
+        String result = className.replace("/", ".");
+        log.trace("Normalize method result: " + result);
+        return result;
     }
 
     /**
@@ -96,7 +98,9 @@ public class OwnClassLoader extends ClassLoader {
      * @return
      */
     private boolean match(String className, String pacageName) {
-        return className.startsWith(pacageName) && className.endsWith(".class");
+        boolean result = className.startsWith(pacageName) && className.endsWith(".class");
+        log.trace("Match method called: " + result);
+        return result;
     }
 
     /**
@@ -128,7 +132,7 @@ public class OwnClassLoader extends ClassLoader {
      */
     @Override
     public synchronized Class<?> loadClass(String name) throws ClassNotFoundException {
-        log.warn("IN LOAD CLASS METHOD");
+        log.trace("IN LOAD CLASS METHOD");
         Class<?> result = cache.get(name);
 
         // check if class is called by short name (without package)
@@ -146,6 +150,7 @@ public class OwnClassLoader extends ClassLoader {
         return result;
     }
 
+
     /**
      * Получаем каноническое имя класса
      *
@@ -154,7 +159,7 @@ public class OwnClassLoader extends ClassLoader {
      */
 
     private String stripClassName(String className) {
-
+        log.trace("Class name stripped");
         return className.substring(0, className.length() - 6);
     }
 
